@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="普陀鹅耳枥回归种群动态模拟平台">
+<meta name="theme-color" content="#0e1612">
+<title>普陀鹅耳枥回归种群动态模拟平台</title>
+<style>
+:root{--bg:#0e1612;--panel:rgba(14,22,18,.78);--card:#141e19;--ink:#e8efe9;--mute:#8da196;--line:rgba(255,255,255,.08);--g:#7cc4a0;--g2:rgba(124,196,160,.14);--gold:#f2d43d;--warn:#e8915f;--serif:"Songti SC","Noto Serif SC","Source Han Serif SC","STSong","SimSun",Georgia,serif;--barh:3.75rem}
+html{font-size:clamp(16px,1.07vw,26px)}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:.875rem/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+.glass{background:var(--panel);backdrop-filter:blur(1rem) saturate(140%);-webkit-backdrop-filter:blur(1rem) saturate(140%);border:1px solid var(--line);border-radius:0.75rem;box-shadow:0 0.75rem 2.5rem rgba(0,0,0,.35)}
+.en{color:var(--mute);font-weight:400}
+.la{font-style:italic;color:var(--mute)}
+#note{display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3000;max-width:560px;padding:1.25rem 1.625rem;font-size:0.8125rem;line-height:1.9}
+
+
+#home{position:fixed;inset:0;display:flex;flex-direction:column}
+.hd{flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1.5rem;padding:0.75rem 2rem;background:rgba(14,22,18,.95);border-bottom:1px solid var(--line);z-index:900;text-align:center}
+.hd h1{font-family:var(--serif);font-size:1.5rem;font-weight:700;letter-spacing:1px;line-height:1.3}
+.hd .sub{margin-top:2px;font-size:0.8125rem;line-height:1.45;color:var(--mute)}
+.hd .meta{justify-self:end;text-align:right;font-size:0.75rem;line-height:1.6;color:var(--mute)}
+.stage{position:relative;flex:1;min-height:0}
+#map{position:absolute;inset:0;background:#10201a}
+.hint{position:absolute;left:1.25rem;top:1.25rem;z-index:800;width:min(43.75rem,calc(100% - 2.5rem));padding:0.875rem 1.25rem 0.75rem;font-size:0.8125rem;line-height:1.65}
+.hint summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:0.5rem;font-weight:600;font-size:0.875rem;color:var(--ink)}
+.hint summary::-webkit-details-marker{display:none}
+.hint summary::after{content:"收起";margin-left:auto;font-size:0.75rem;font-weight:400;color:var(--mute)}
+.hint:not([open]) summary::after{content:"展开"}
+.hint .intro p{text-align:justify;text-justify:inter-ideograph}
+.hint .intro p+p{margin-top:0.375rem}
+.hint .go{margin-top:0.625rem;padding-top:0.5625rem;border-top:1px solid var(--line)}
+.tip{position:fixed;left:0;top:0;z-index:1000;pointer-events:none;display:none;padding:0.5625rem 0.875rem;font-size:0.8125rem;line-height:1.6;white-space:nowrap}
+.maptype{position:absolute;right:1.25rem;bottom:2.25rem;z-index:800;display:flex;padding:0.25rem;gap:2px}
+.maptype button{border:none;background:none;padding:0.375rem 0.875rem;border-radius:0.5625rem;font-size:0.8125rem;color:var(--mute)}
+.maptype button.on{background:var(--g);color:#0b1410;font-weight:600}
+.maptype button.on .en{color:inherit;opacity:.75}
+.legend{position:absolute;left:1.25rem;bottom:2.25rem;padding:0.75rem 1.125rem;z-index:800;font-size:0.8125rem;color:var(--mute);line-height:1.9}
+.legend i{display:inline-block;width:0.625rem;height:0.625rem;border-radius:50%;margin-right:0.375rem;vertical-align:-1px}
+.sitefoot{flex:none;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;text-align:center;gap:2px 1.75rem;padding:0.625rem 2rem;background:rgba(10,16,13,.96);border-top:1px solid var(--line);font-size:0.75rem;line-height:1.6;color:var(--mute);position:relative;z-index:900}
+.sitefoot b{color:var(--ink);font-weight:600}
+.sitefoot a{color:var(--g);text-decoration:none}.sitefoot a:hover{text-decoration:underline}
+.sitefoot .cp{margin-left:auto}
+
+
+#detail{display:none;min-height:100vh;flex-direction:column;background:radial-gradient(68.75rem 32.5rem at 75% -10%,#1b3226 0,var(--bg) 62%)}
+.bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:1.25rem;min-height:var(--barh);padding:0.5rem 2.5rem;background:rgba(14,22,18,.9);backdrop-filter:blur(0.75rem);-webkit-backdrop-filter:blur(0.75rem);border-bottom:1px solid var(--line)}
+.back{flex:none;border:1px solid var(--line);background:none;border-radius:1.25rem;padding:0.3125rem 1rem;font-size:0.8125rem}.back:hover{background:var(--g2)}
+.ttl{min-width:0}
+.ttl h2{font-family:var(--serif);font-size:1.125rem;font-weight:700;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ttl small{display:block;font-size:0.75rem;line-height:1.4;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctl{margin-left:auto;display:flex;align-items:center;gap:1.125rem;flex-wrap:wrap;justify-content:flex-end}
+.grp{display:flex;align-items:center;gap:0.5rem;font-size:0.7812rem;color:var(--mute)}
+.grp>span{line-height:1.25;text-align:right}.grp>span small{display:block;font-size:0.6875rem;opacity:.85}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:0.625rem;padding:2px;gap:2px;background:rgba(255,255,255,.02)}
+.seg button{border:none;background:none;border-radius:0.5rem;padding:0.1875rem 0.8125rem;font-size:0.8125rem;color:var(--mute);line-height:1.35;text-align:center}
+.seg button small{display:block;font-size:0.6562rem;opacity:.8}
+.seg button.on{background:var(--g);color:#0b1410;font-weight:600}
+.seg button.on .en,.seg button.on small{color:inherit}
+.seg .dot{display:inline-block;width:0.5rem;height:0.5rem;border-radius:50%;margin-right:0.375rem;vertical-align:0}
+
+.wrap{width:100%;max-width:1680px;margin:0 auto;padding:1.375rem 2.5rem 0.5rem;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(23.75rem,1fr);gap:2.5rem;align-items:start;flex:1}
+.left{position:sticky;top:calc(var(--barh) + 1.375rem)}
+.view{position:relative;width:100%;max-width:calc((100vh - var(--barh) - 10.625rem)*1.25 + 0px);min-width:min(100%,26.25rem);margin:0 auto 0 0;border-radius:0.75rem;overflow:hidden;background:var(--card);border:1px solid var(--line);box-shadow:0 1.5rem 3.75rem rgba(0,0,0,.45)}
+.imgbox{position:relative;width:100%;aspect-ratio:1.25;background:#c3ccd6}
+.imgbox img{width:100%;height:100%;object-fit:contain;display:block}
+.imgbox .ph{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:#3b4a43;font-size:0.8125rem;padding:0 2.5rem;text-align:center}
+.view:fullscreen{max-width:none;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#05080a;border:none;border-radius:0;box-shadow:none}
+.view:fullscreen .imgbox,.view:fullscreen .ctrl{width:min(100vw,calc((100vh - 2.5rem)*1.25))}
+.ctrl{display:flex;align-items:center;gap:0.625rem;height:2.5rem;padding:0 0.875rem;background:var(--card)}
+#play{width:1.5rem;height:1.5rem;border-radius:50%;border:none;background:var(--g);color:#0b1410;font-size:0.5625rem;flex:none;padding:0}
+.st{width:1.375rem;height:1.375rem;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:none;font-size:0.8125rem;line-height:1;flex:none;padding:0}.st:hover{background:var(--g2)}
+#yr{flex:1;accent-color:var(--g);min-width:0}
+#yl{font-size:0.9375rem;font-weight:700;min-width:2.75rem;text-align:right;font-variant-numeric:tabular-nums}
+.rnote{margin-top:0.625rem;padding-left:0.625rem;border-left:2px solid var(--g);font-size:0.75rem;line-height:1.6;color:var(--mute)}
+.under{display:flex;align-items:center;gap:1rem;margin-top:0.75rem;flex-wrap:wrap}
+.cap{display:flex;align-items:center;gap:0.5rem;font-size:0.7812rem;color:var(--mute)}.cap i{width:0.75rem;height:0.75rem;border-radius:0.1875rem;background:var(--gold);flex:none}
+.scn{margin-top:0.75rem;font-size:0.8125rem;color:var(--mute);line-height:1.6}
+.scn b{color:var(--ink)}
+.sw{display:inline-block;width:1.125rem;border-top:2.5px solid;vertical-align:middle;margin-right:0.4375rem}
+
+.right{min-width:0;display:flex;flex-direction:column}
+.sec{padding:0 0 1.625rem;margin-bottom:1.625rem;border-bottom:1px solid var(--line)}
+.sec:last-child{border:none;margin:0;padding-bottom:0.5rem}
+.sec h3{font-size:0.875rem;font-weight:600;line-height:1.45;color:#b4c6bb;margin-bottom:0.875rem}
+.sec h3 small{display:block;font-weight:400;font-size:0.75rem;color:var(--mute);margin-top:1px}
+.name{font-family:var(--serif);font-size:1.5rem;font-weight:700;line-height:1.35}
+.nameen{font-size:0.8125rem;color:var(--mute);margin-top:0.1875rem;line-height:1.5}
+.comp{display:flex;height:0.5rem;border-radius:0.25rem;overflow:hidden;margin:1rem 0 0.5625rem;gap:2px}
+.cl{display:flex;flex-wrap:wrap;gap:0.25rem 1rem;font-size:0.7812rem;color:var(--mute)}.cl i{display:inline-block;width:0.5rem;height:0.5rem;border-radius:2px;margin-right:0.3125rem}
+.cl b{color:var(--ink);font-weight:600}
+.kv{display:grid;grid-template-columns:7.5rem 1fr;gap:0.625rem 0.875rem;font-size:0.8438rem;margin-top:1.125rem;align-items:start}.kv>span{color:var(--mute);line-height:1.35}.kv>span small{display:block;font-size:0.7188rem;opacity:.85}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.25rem;padding-top:1.125rem;border-top:1px solid var(--line)}
+.stats b{display:block;font-family:var(--serif);font-size:1.75rem;font-weight:700;line-height:1.2;color:var(--g);font-variant-numeric:tabular-nums}
+.stats span{font-size:0.75rem;color:var(--mute);line-height:1.45;display:block}
+svg text{fill:var(--mute);font-size:0.75rem}svg .ax{stroke:var(--line)}svg{display:block;max-width:100%}
+.lg{display:flex;flex-wrap:wrap;gap:0.25rem 0.5rem;margin-top:0.625rem}
+.li{display:inline-flex;align-items:center;gap:0.4375rem;border:none;background:none;padding:2px 0.5rem;font-size:0.7812rem;color:var(--mute);border-radius:0.375rem}
+.li.on{color:var(--ink);font-weight:600;background:rgba(255,255,255,.08)}
+.li svg{width:1.625rem;height:0.5rem;overflow:visible}
+.notes{display:grid;gap:0.875rem;font-size:0.75rem;line-height:1.65;color:var(--mute)}
+.notes b{color:var(--ink);font-weight:600}
+@media(max-width:1000px){.bar{flex-wrap:wrap;padding:0.625rem 1rem;gap:0.625rem}.ctl{margin-left:0;justify-content:flex-start;gap:0.625rem 0.875rem;width:100%}.grp>span{text-align:left}.wrap{display:block;padding:1rem}.left{position:static}.view{max-width:100%}.right{margin-top:1.5rem}.hd{grid-template-columns:1fr}.hd>span,.hd .meta{display:none}}
+@media(max-width:640px){.hd{padding:0.625rem 1rem}.hd h1{font-size:1.125rem}.hd .meta{display:none}.sitefoot{padding:0.625rem 1rem}.sitefoot .cp{margin-left:0}.hint{left:0.75rem;top:0.75rem}.kv{grid-template-columns:6rem 1fr}.stats b{font-size:1.375rem}.ctrl{height:3rem}#play{width:2.125rem;height:2.125rem;font-size:0.75rem}.st{width:1.75rem;height:1.75rem}#yl{font-size:1.25rem}.maptype{right:0.75rem;bottom:2.25rem}.legend{left:0.75rem;bottom:5.25rem}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<noscript>本平台需要启用 JavaScript 才能显示。This site requires JavaScript to run.</noscript>
+<div id="note" class="glass"></div>
+
+
+<section id="home">
+  <header class="hd">
+    <span></span>
+    <div>
+      <h1>普陀鹅耳枥回归种群动态模拟平台</h1>
+      <div class="sub en" lang="en">Population Dynamics Simulation Platform for <em>Carpinus putoensis</em> Reintroduction</div>
+    </div>
+    <div class="meta">模拟时段 2015–2100 年 <span class="en" lang="en">Simulation period 2015–2100</span><br>LANDIS-II v8.0 · NECN v8.1 · Hurricane v3.0</div>
+  </header>
+  <div class="stage">
+    <div id="map"></div>
+    <details class="hint glass" id="hint" open>
+      <summary>项目简介</summary>
+      <div class="intro">
+        <p style="margin-top:8px">普陀鹅耳枥（<em>Carpinus putoensis</em>）是我国特有的极小种群野生植物，目前仅在浙江舟山普陀山存有 1 株原生母树，亟待营建人工回归种群，促进其实现天然更新。本平台基于森林景观模型 LANDIS-II，模拟其迁入8个代表性初始群落后，在不同气候、台风干扰情景下 2015-2100 年的种群动态，为筛选适宜的迁地区域与群落配置提供参考。</p>
+      </div>
+      <div class="go">点击地图上的编号，查看对应初始群落的模拟结果。<br><span class="en" lang="en">Select a marker to view the simulation results of that initial community.</span></div>
+    </details>
+    <div class="tip glass" id="tip"></div>
+    <div class="maptype glass" id="mt"><button data-t="NORMAL" class="on">矢量 <span class="en" lang="en">Vector</span></button><button data-t="HYBRID">影像 <span class="en" lang="en">Satellite</span></button><button data-t="TERRAIN_HYBRID">地形 <span class="en" lang="en">Terrain</span></button></div>
+    <div class="legend glass">迁入群落 <span class="en" lang="en">Recipient communities</span><br><i style="background:#6fbf96"></i>天然林 <span class="en" lang="en">Natural forest</span> &nbsp;&nbsp;<i style="background:#e8915f"></i>人工林 <span class="en" lang="en">Plantation</span></div>
+  </div>
+  <footer class="sitefoot"></footer>
+</section>
+
+
+<section id="detail">
+  <div class="bar">
+    <button class="back" onclick="location.hash=''">← 返回地图 <span class="en" lang="en">Back to map</span></button>
+    <div class="ttl"><h2 id="ttl"></h2><small id="ttls" lang="en"></small></div>
+    <div class="ctl">
+      <div class="grp"><span>气候情景<small lang="en">Climate</small></span><div class="seg" id="cs"></div></div>
+      <div class="grp"><span>台风干扰<small lang="en">Typhoon</small></span><div class="seg" id="ts"></div></div>
+    </div>
+  </div>
+  <div class="wrap" id="wrap">
+    <div class="left">
+      <div class="view" id="view"><div class="imgbox"><img id="img" alt=""><div class="ph" id="ph"></div></div>
+        <div class="ctrl"><button id="play" title="播放/暂停 Play/Pause">▶</button><button class="st" id="prev" title="上一年 Previous year">‹</button><input type="range" id="yr" min="2015" max="2100" value="2015" aria-label="年份 Year"><button class="st" id="next" title="下一年 Next year">›</button><div id="yl">2015</div><button class="st" id="fs" title="全屏 Fullscreen（双击图片同效 / double-click image）">⤢</button></div></div>
+      <p class="rnote">基于样地实测林木数据和 LANDIS-II 同龄群生物量推算生成，仅作示意，不代表真实林分状况。<br><span class="en" lang="en">Schematic renderings derived from field-measured tree data and LANDIS-II cohort biomass; not actual stand conditions.</span></p>
+      <div class="under"><div class="seg" id="vw"></div><div class="cap" id="cap"></div></div>
+      <div class="scn" id="intro"></div>
+    </div>
+    <div class="right" id="rt">
+      <div class="sec">
+        <h3>初始群落信息<small lang="en">Initial community</small></h3>
+        <div class="name" id="nm"></div><div class="nameen" id="nmen" lang="en"></div>
+        <div class="comp" id="comp"></div><div class="cl" id="cl"></div>
+        <div class="kv" id="kv"></div>
+        <div class="stats">
+          <div><b id="s1">–</b><span>普陀鹅耳枥地上生物量 (t/ha)<br><span class="en" lang="en"><em>C. putoensis</em> aboveground biomass</span></span></div>
+          <div><b id="s2">–</b><span>普陀鹅耳枥同龄群数<br><span class="en" lang="en">Number of cohorts</span></span></div>
+          <div><b id="s3">–</b><span>最大同龄群年龄 (a)<br><span class="en" lang="en">Oldest cohort age (yr)</span></span></div>
+        </div>
+      </div>
+      <div class="sec"><h3 id="c1t"></h3><svg id="c1"></svg><div class="lg" id="lg"></div></div>
+      <div class="sec"><h3 id="c2t"></h3><svg id="c2"></svg></div>
+      <div class="sec notes">
+        <div><b>气候基准</b> 采用 NEX-GDDP-CMIP6 数据集 BCC-CSM2-MR 模式 1985–2014 年的历史气候模拟数据。<br><span class="en" lang="en"><b>Baseline climate</b> Historical simulation (1985–2014) of the BCC-CSM2-MR model from the NEX-GDDP-CMIP6 dataset.</span></div>
+        <div><b>台风基准</b> 基于 1991–2020 年台风路径与风场数据，统计得到年发生频次和登陆风速分布。<br><span class="en" lang="en"><b>Baseline typhoon</b> Annual typhoon frequency and landfall wind-speed distribution derived from 1991–2020 typhoon track and wind-field data.</span></div>
+      </div>
+    </div>
+  </div>
+  <footer class="sitefoot"></footer>
+</section>
+
+<script>
+const TK="2350995c524eb9e9aeabed1ce9dc546f";
+const Y0=2015,Y1=2100,IMG_STEP=1,IMG_OFFSET=0;
+const DATA_URL="result.csv";
+const SC=[["Baseline-NT","基准气候 · 无台风","#b9c4cf","bs"],
+["Baseline-T","基准气候 · 基准台风","#b9c4cf","bsbs"],
+["SSP126-NT","SSP126 · 无台风","#4aa8ff","ssp126"],
+["SSP126-T","SSP126 · 台风强度+5%","#4aa8ff","ssp126+5ty"],
+["SSP585-NT","SSP585 · 无台风","#ff6a5b","ssp585"],
+["SSP585-T","SSP585 · 台风强度+15%","#ff6a5b","ssp585+15ty"]];
+const SC_ZH=["基准气候情景，无台风干扰","基准气候情景，基准强度台风干扰","SSP1-2.6 气候情景，无台风干扰","SSP1-2.6 气候情景，台风强度较基准增加 5%","SSP5-8.5 气候情景，无台风干扰","SSP5-8.5 气候情景，台风强度较基准增加 15%"];
+const SC_EN=["Baseline climate, no typhoon disturbance","Baseline climate, baseline-intensity typhoon regime","SSP1-2.6 climate, no typhoon disturbance","SSP1-2.6 climate, typhoon intensity 5% above baseline","SSP5-8.5 climate, no typhoon disturbance","SSP5-8.5 climate, typhoon intensity 15% above baseline"];
+const CLIM=[["基准","Baseline","#b9c4cf"],["SSP1-2.6","","#4aa8ff"],["SSP5-8.5","","#ff6a5b"]];
+const TYP=[["基准强度","baseline"],["强度 +5%","+5%"],["强度 +15%","+15%"]];
+const DASH=["","6 4","","6 4","","6 4"];
+const VIEWS=[{k:"front",name:"垂直结构",en:"Vertical profile"},{k:"bird",name:"空间格局",en:"Spatial pattern"}];
+const SITES=[[1,"黄檀檵木白栎林","天然林","落叶阔叶林",[["黄檀",35],["檵木",33],["白栎",22]],29.882,122.091],
+[2,"马尾松林（30年）","天然林","常绿针叶林",[["马尾松",99]],29.551,121.605],
+[3,"马尾松林（60年）","天然林","常绿针叶林",[["马尾松",98]],30.043,122.095],
+[4,"木荷马尾松林","天然林","常绿针阔混交林",[["木荷",60],["马尾松",31]],29.996,122.297],
+[5,"青冈木荷石栎林","天然林","常绿阔叶林",[["青冈",35],["木荷",34],["石栎",30]],28.886,121.603],
+[6,"木荷林","天然林","常绿阔叶林",[["木荷",76]],29.547,121.842],
+[7,"普陀鹅耳枥南方红豆杉混交林","人工林","针阔混交林",[["普陀鹅耳枥",67],["南方红豆杉",33]],30.110,122.087],
+[8,"普陀鹅耳枥纯林","人工林","落叶阔叶林",[["普陀鹅耳枥",100]],30.128,122.075]];
+const EN_SITE=[
+"<em>Dalbergia hupeana</em>–<em>Loropetalum chinense</em>–<em>Quercus fabri</em> forest",
+"<em>Pinus massoniana</em> forest (30 years old)",
+"<em>Pinus massoniana</em> forest (60 years old)",
+"<em>Schima superba</em>–<em>Pinus massoniana</em> mixed forest",
+"<em>Quercus glauca</em>–<em>Schima superba</em>–<em>Lithocarpus glaber</em> forest",
+"<em>Schima superba</em> forest",
+"<em>Carpinus putoensis</em>–<em>Taxus wallichiana</em> var. <em>mairei</em> mixed plantation",
+"<em>Carpinus putoensis</em> pure plantation"];
+const EN_ORIGIN={"天然林":"Natural forest","人工林":"Plantation"};
+const EN_FT={"落叶阔叶林":"Deciduous broadleaf forest","常绿针叶林":"Evergreen needleleaf forest","常绿针阔混交林":"Evergreen needleleaf–broadleaf mixed forest","常绿阔叶林":"Evergreen broadleaf forest","针阔混交林":"Needleleaf–broadleaf mixed forest"};
+const EN_SP={"黄檀":"Dalbergia hupeana","檵木":"Loropetalum chinense","白栎":"Quercus fabri","马尾松":"Pinus massoniana","木荷":"Schima superba","青冈":"Quercus glauca","石栎":"Lithocarpus glaber","普陀鹅耳枥":"Carpinus putoensis","南方红豆杉":"Taxus wallichiana var. mairei"};
+const CONTACT={org:"浙江大学生命科学学院 陈伟乐-梁爽课题组",addr:"浙江省杭州市西湖区余杭塘路866号",maint:"崔文静",email:"22407043@zju.edu.cn",year:2026};
+const spEn=n=>`<em class="la">${EN_SP[n].replace(" var. ",'</em><span style="color:var(--mute)"> var. </span><em class="la">')}</em>`;
+const en=t=>`<span class="en" lang="en">${t}</span>`;
+const MSG_MAP="地图服务暂时不可用，请稍后刷新重试。<br>The map service is unavailable. Please refresh and try again later.";
+const MSG_DATA="数据加载失败，请刷新页面重试。<br>Failed to load the data. Please refresh the page.";
+const AR=1.25,PAL=["#6fbf96","#5aa9e6","#e8915f","#b48ee0","#7fd1d1"],GOLD="#f2d43d",TARGET="普陀鹅耳枥";
+const S={sc:0,site:1,year:Y0,timer:null,view:0};
+const $=id=>document.getElementById(id),NS="http://www.w3.org/2000/svg";
+let DATA={},ready=false,map=null,cache={},axisCache={};
+const cohorts=(sc,st,y)=>((DATA[SC[sc][0]]||{})[st]||{})[y]||[];
+const agb=(sc,st,y)=>cohorts(sc,st,y).reduce((a,c)=>a+c[1],0)*0.01;
+const note=t=>{const n=$("note");n.style.display=t?"block":"none";n.innerHTML=t||""};
+const colorOf=(s,i)=>s[4][i][0]===TARGET?GOLD:PAL[i%PAL.length];
+
+
+async function loadCSV(){
+  const r=await fetch(DATA_URL);if(!r.ok)throw 0;
+  const t=await r.text();
+  if(/\.json$/i.test(DATA_URL)){DATA=JSON.parse(t);cache={};axisCache={};return}
+  parseCSV(t);
+}
+function parseCSV(txt){
+  DATA={};cache={};axisCache={};
+  const L=txt.replace(/^\uFEFF/,"").split(/\r?\n/);
+  const d=L[0].includes("\t")?"\t":",";
+  const map0={};SC.forEach(s=>map0[s[3].toLowerCase()]=s[0]);
+  const blocks=[];L[0].split(d).forEach((x,i)=>{const k=x.trim().replace(/^"|"$/g,"").toLowerCase();if(map0[k])blocks.push([i,map0[k]])});
+  if(!blocks.length)throw 0;
+  const seen={};
+  for(let n=2;n<L.length;n++){if(!L[n])continue;const c=L[n].split(d);
+    for(const[o,name]of blocks){const sp=c[o+3];if(!sp||sp.indexOf("CarpPuto")<0)continue;
+      const y=2014+(+c[o]),st=+c[o+2],mo=+c[o+1],age=+c[o+4],bm=+c[o+5]; // Year 1 = 2015
+      if(!(y>2014&&st>0&&bm>=0))continue;
+      const k=name+"|"+st+"|"+y;if(seen[k]===undefined)seen[k]=mo;if(seen[k]!==mo)continue;
+      const a=DATA[name]||(DATA[name]={}),b=a[st]||(a[st]={});(b[y]||(b[y]=[])).push([age,bm])}}
+}
+
+
+window.addEventListener("resize",()=>{if($("detail").style.display==="flex"){drawLine();drawAge()}});
+function route(){
+  if(!ready)return;
+  const m=location.hash.match(/^#site([1-8])$/);stop();
+  if(m){S.site=+m[1];S.year=Y0;$("home").style.display="none";$("detail").style.display="flex";window.scrollTo(0,0);buildDetail();render()}
+  else{$("detail").style.display="none";$("home").style.display="flex";if(map)try{map.checkResize()}catch(e){}}
+}
+window.addEventListener("hashchange",route);
+
+
+const MK=Math.round(44*parseFloat(getComputedStyle(document.documentElement).fontSize)/16);
+const mk=s=>{const c=s[2]==="人工林"?"#e8915f":"#6fbf96",z=MK,h=z/2;
+  return new T.Icon({iconUrl:"data:image/svg+xml,"+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='${z}' height='${z}'><circle cx='${h}' cy='${h}' r='${z*.432}' fill='${c}' fill-opacity='.25'/><circle cx='${h}' cy='${h}' r='${z*.295}' fill='${c}' stroke='#fff' stroke-width='${z*.057}'/><text x='${h}' y='${h+z*.115}' text-anchor='middle' font-size='${z*.34}' font-weight='700' font-family='Arial' fill='#0b1410'>${s[0]}</text></svg>`),iconSize:new T.Point(z,z),iconAnchor:new T.Point(h,h)})};
+const hideTip=()=>{$("tip").style.display="none"};
+function placeTip(e){
+  const t=$("tip");t.style.display="block";
+  const w=t.offsetWidth,h=t.offsetHeight,x=e.clientX,y=e.clientY,g=MK/2+4,m=8,W=innerWidth,H=innerHeight,
+    top0=document.querySelector("#home .stage").getBoundingClientRect().top+m,
+    cx=Math.min(Math.max(x-w/2,m),W-w-m),cy=Math.min(Math.max(y-h/2,top0),H-h-m),
+    c=[[cx,y-g-h],[cx,y+g],[x+g,cy],[x-g-w,cy]],
+    p=c.find(([l,tp])=>tp>=top0&&tp+h<=H-m&&l>=m&&l+w<=W-m)||c[1];
+  t.style.left=p[0]+"px";t.style.top=Math.max(top0,Math.min(p[1],H-h-m))+"px"}
+function siteOfIcon(t){
+  if(!t||t.tagName!=="IMG")return null;const src=t.getAttribute("src")||"";if(src.indexOf("data:image/svg")!==0)return null;
+  let m;try{m=decodeURIComponent(src.slice(src.indexOf(",")+1)).match(/>(\d)<\/text>/)}catch(e){return null}
+  return m?SITES[m[1]-1]:null}
+function initMap(){
+  if(!window.T)return note(MSG_MAP);
+  map=new T.Map("map");map.centerAndZoom(new T.LngLat(121.6,29.9),8);
+  ["movestart","zoomstart","dragstart"].forEach(ev=>map.addEventListener(ev,hideTip));
+  const pts=[];
+  SITES.forEach(s=>{const p=new T.LngLat(s[6],s[5]);pts.push(p);
+    const m=new T.Marker(p,{icon:mk(s)});
+    m.addEventListener("click",()=>{hideTip();location.hash="site"+s[0]});
+    map.addOverLay(m)});
+  try{map.setViewport(pts)}catch(e){}
+  try{map.setMinZoom(7)}catch(e){}
+  try{map.setMaxZoom(15)}catch(e){}
+  const me=$("map");
+  me.addEventListener("mouseover",e=>{const s=siteOfIcon(e.target);if(!s)return;
+    $("tip").innerHTML=`<b>Site ${s[0]} · ${s[1]}</b><br>${en(EN_SITE[s[0]-1])}<br><span style="color:var(--mute)">${s[2]} · ${s[3]}</span><br>${en(EN_ORIGIN[s[2]]+" · "+EN_FT[s[3]])}<br><span style="color:var(--g)">点击查看 </span>${en("Click to view")}`;
+    placeTip(e);$("tip").style.display="block"});
+  me.addEventListener("mousemove",e=>{if($("tip").style.display==="block")placeTip(e)});
+  me.addEventListener("mouseout",e=>{if(siteOfIcon(e.target))hideTip()});
+  $("mt").onclick=ev=>{const b=ev.target.closest("button");if(!b)return;
+    const k="TMAP_"+b.dataset.t+"_MAP",v=window[k]!==undefined?window[k]:T[k];
+    if(v===undefined)return;
+    try{map.setMapType(v);document.querySelectorAll("#mt button").forEach(x=>x.classList.toggle("on",x===b))}catch(e){}};
+}
+function loadT(){
+  const s=document.createElement("script");s.src="https://api.tianditu.gov.cn/api?v=4.0&tk="+TK;
+  const fail=()=>note(MSG_MAP);
+  s.onload=()=>{try{initMap()}catch(e){fail()}};s.onerror=fail;
+  document.head.appendChild(s);
+}
+
+
+function buildDetail(){
+  const s=SITES[S.site-1];
+  $("ttl").textContent=`Site ${s[0]}　${s[1]}`;
+  $("ttls").innerHTML=EN_SITE[s[0]-1];
+  $("nm").textContent=s[1];$("nmen").innerHTML=EN_SITE[s[0]-1];
+  $("c1t").innerHTML=`普陀鹅耳枥地上生物量动态<small lang="en">Aboveground biomass dynamics of <em>Carpinus putoensis</em></small>`;
+  const solo=s[4].length===1&&s[4][0][0]===TARGET;
+  $("cap").innerHTML=solo?"":`<i></i><span>黄色为<b style="color:var(--ink)">普陀鹅耳枥</b> ${en("Yellow: <em>Carpinus putoensis</em>")}</span>`;
+  const rest=Math.round((100-s[4].reduce((a,d)=>a+d[1],0))*10)/10;
+  $("comp").innerHTML=s[4].map((d,i)=>`<div style="flex:${d[1]};background:${colorOf(s,i)}"></div>`).join("")+(rest>0?`<div style="flex:${rest};background:rgba(255,255,255,.14)"></div>`:"");
+  $("cl").innerHTML=s[4].map((d,i)=>`<span><i style="background:${colorOf(s,i)}"></i>${d[0]} ${spEn(d[0])} <b>${d[1]}%</b></span>`).join("")+(rest>0?`<span><i style="background:rgba(255,255,255,.14)"></i>其他树种 ${en("Other species")} <b>${rest}%</b></span>`:"")+`<span style="opacity:.8">初始地上生物量占比 ${en("share of initial aboveground biomass")}</span>`;
+  $("kv").innerHTML=[["群落编号","Community ID",s[0]],["起源","Origin",`${s[2]} ${en(EN_ORIGIN[s[2]])}`],["森林类型","Forest type",`${s[3]} ${en(EN_FT[s[3]])}`],["初始优势种","Dominant species",s[4].map(d=>`${d[0]} ${spEn(d[0])}`).join("<br>")],["坐标","Coordinates",`${s[5].toFixed(2)}°N, ${s[6].toFixed(2)}°E`]].map(r=>`<span>${r[0]}<small lang="en">${r[1]}</small></span><div>${r[2]}</div>`).join("");
+}
+
+$("cs").innerHTML=CLIM.map((c,i)=>`<button data-c="${i}"><i class="dot" style="background:${c[2]}"></i>${c[0]}${c[1]?` <span class="en" lang="en">${c[1]}</span>`:" "+en("Baseline")}</button>`.replace(/<span class="en" lang="en">Baseline<\/span> <span class="en" lang="en">Baseline<\/span>/,'<span class="en" lang="en">Baseline</span>')).join("");
+$("cs").onclick=e=>{const b=e.target.closest("button");if(b){S.sc=+b.dataset.c*2+(S.sc%2);render()}};
+$("ts").onclick=e=>{const b=e.target.closest("button");if(b){S.sc=Math.floor(S.sc/2)*2+ +b.dataset.t;render()}};
+$("yr").oninput=e=>{S.year=+e.target.value;render()};
+const step=d=>{S.year=Math.max(Y0,Math.min(Y1,S.year+d));render()};
+$("prev").onclick=()=>{stop();step(-1)};$("next").onclick=()=>{stop();step(1)};
+document.addEventListener("keydown",e=>{if($("detail").style.display!=="flex")return;
+  if(e.key==="ArrowLeft"){stop();step(-1)}else if(e.key==="ArrowRight"){stop();step(1)}else if(e.key===" "&&e.target.tagName!=="BUTTON"&&e.target.tagName!=="INPUT"){e.preventDefault();$("play").click()}});
+function stop(){if(S.timer){clearInterval(S.timer);S.timer=null;$("play").textContent="▶"}}
+$("play").onclick=()=>{if(S.timer){stop();return}
+  if(S.year>=Y1)S.year=Y0;$("play").textContent="❚❚";
+  S.timer=setInterval(()=>{if(S.year>=Y1){stop();return}S.year++;render()},300)};
+
+
+$("vw").innerHTML=VIEWS.map((v,i)=>`<button data-i="${i}">${v.name} ${en(v.en)}</button>`).join("");
+$("vw").onclick=e=>{const b=e.target.closest("button");if(b){S.view=+b.dataset.i;render()}};
+$("fs").onclick=()=>{const v=$("view");document.fullscreenElement?document.exitFullscreen():(v.requestFullscreen&&v.requestFullscreen())};
+$("img").ondblclick=()=>$("fs").onclick();
+$("lg").innerHTML=SC.map((s,i)=>`<button class="li" data-i="${i}"><svg viewBox="0 0 26 8"><line x1="0" y1="4" x2="26" y2="4" stroke="${s[2]}" stroke-width="2.6" stroke-dasharray="${DASH[i]}"/></svg>${s[0]}</button>`).join("");
+$("lg").onclick=e=>{const b=e.target.closest(".li");if(b){S.sc=+b.dataset.i;render()}};
+
+
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e};
+const txt=(p,x,y,t,anc)=>{const e=el("text",{x,y,"text-anchor":anc||"middle"},p);e.textContent=t};
+function axes(svg,xmax,ymax,xl,yl,xs){
+  const k=parseFloat(getComputedStyle(document.documentElement).fontSize)/16;
+  const W=Math.max(300,svg.parentNode.clientWidth||420),H=Math.round(Math.min(320*k,Math.max(230*k,W*.5)));
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);svg.setAttribute("width",W);svg.setAttribute("height",H);svg.innerHTML="";
+  const L=52*k,R=12,T=10,B=44*k,iw=W-L-R,ih=H-T-B;
+  for(let i=0;i<=4;i++){const y=T+ih-ih*i/4;el("line",{x1:L,x2:W-R,y1:y,y2:y,class:"ax"},svg);txt(svg,L-8*k,y+4*k,+(ymax*i/4).toPrecision(3),"end")}
+  xs.forEach(v=>txt(svg,L+iw*v[0]/xmax,T+ih+17*k,v[1]));
+  txt(svg,L+iw/2,H-5*k,xl);const t=el("text",{transform:`translate(${13*k} ${T+ih/2}) rotate(-90)`,"text-anchor":"middle"},svg);t.textContent=yl;
+  return{X:v=>L+iw*v/xmax,Y:v=>T+ih-ih*v/ymax,iw,ih,top:T,bot:T+ih};
+}
+const series=(sc,st)=>{const k=sc+"_"+st;if(cache[k])return cache[k];const a=[];for(let y=Y0;y<=Y1;y++)a.push(agb(sc,st,y));return cache[k]=a};
+const path=(a,g)=>a.map((v,i)=>(i?"L":"M")+g.X(i).toFixed(1)+","+g.Y(v).toFixed(1)).join("");
+const niceMax=v=>{const p=Math.pow(10,Math.floor(Math.log10(v))),n=v/p;return([1,1.2,1.6,2,2.4,3,4,5,6,8,10].find(x=>x>=n-1e-9)||10)*p};
+function drawLine(){
+  const svg=$("c1"),all=SC.map((_,i)=>series(i,S.site)),ymax=niceMax(Math.max(.4,...all.flat()));
+  const g=axes(svg,Y1-Y0,ymax,"年份 Year","地上生物量 Aboveground biomass (t/ha)",[0,17,34,51,68,85].map(v=>[v,Y0+v]));
+  const line=(i,sel)=>el("path",{d:path(all[i],g),fill:"none",stroke:SC[i][2],"stroke-width":sel?3:1.6,"stroke-dasharray":DASH[i],"stroke-linejoin":"round",opacity:sel?1:.55},svg);
+  all.forEach((_,i)=>{if(i!==S.sc)line(i,false)});line(S.sc,true);
+  const x=g.X(S.year-Y0);el("line",{x1:x,x2:x,y1:g.top,y2:g.bot,stroke:"rgba(255,255,255,.4)","stroke-dasharray":"2 4"},svg);
+  el("circle",{cx:x,cy:g.Y(all[S.sc][S.year-Y0]),r:5,fill:SC[S.sc][2],stroke:"#fff","stroke-width":1.5},svg);
+}
+const bins=cs=>{const b={};cs.forEach(([a,m])=>{const k=Math.floor((a-1)/10);b[k]=(b[k]||0)+m*0.01});return b};
+function ageAxis(){const k=S.sc+"_"+S.site;if(axisCache[k])return axisCache[k];let nb=1,ym=.4;
+  for(let y=Y0;y<=Y1;y++){const b=bins(cohorts(S.sc,S.site,y));for(const i in b){nb=Math.max(nb,+i+1);ym=Math.max(ym,b[i])}}
+  return axisCache[k]={nb,ym:niceMax(ym)}}
+function drawAge(){
+  const svg=$("c2"),{nb,ym}=ageAxis(),b=bins(cohorts(S.sc,S.site,S.year));
+  const xs=[];for(let i=0;i<nb;i++)xs.push([i+.5,`${i*10+1}–${i*10+10}`]);
+  const g=axes(svg,nb,ym,"同龄群年龄级 Cohort age class (yr)","地上生物量 Aboveground biomass (t/ha)",nb>8?xs.filter((_,i)=>i%2==0):xs),w=g.iw/nb;
+  for(const i in b)el("rect",{x:g.X(+i)+w*.12,y:g.Y(b[i]),width:w*.76,height:g.Y(0)-g.Y(b[i]),rx:3,fill:SC[S.sc][2],opacity:.9},svg);
+  $("c2t").innerHTML=`普陀鹅耳枥年龄结构（${S.year} 年）<small lang="en">Age-class structure of <em>Carpinus putoensis</em> biomass in ${S.year}</small>`;
+}
+
+
+const imgUrl=(sc,st,y,v=S.view)=>{const k=VIEWS[v].k,yy=Math.max(Y0,Math.min(Y1,Y0+Math.round((y-Y0)/IMG_STEP)*IMG_STEP+IMG_OFFSET));return `media/${SC[sc][0]}/site${st}/${k}/site${st}_${k}_${yy}.webp`};
+function render(){
+  const c=Math.floor(S.sc/2),t=S.sc%2;
+  document.querySelectorAll("#cs button").forEach((b,i)=>b.classList.toggle("on",i===c));
+  $("ts").innerHTML=[`无台风 <small lang="en">No typhoon</small>`,`有台风 ${TYP[c][0]} <small lang="en">Typhoon, ${c?TYP[c][1]+" vs. baseline":"baseline intensity"}</small>`].map((h,i)=>`<button data-t="${i}" class="${i===t?"on":""}">${h}</button>`).join("");
+  document.querySelectorAll("#lg .li").forEach((b,i)=>b.classList.toggle("on",i===S.sc));
+  document.querySelectorAll("#vw button").forEach((b,i)=>b.classList.toggle("on",i===S.view));
+  const sc=SC[S.sc];
+  $("intro").innerHTML=`<i class="sw" style="color:${sc[2]};border-top-style:${DASH[S.sc]?"dashed":"solid"}"></i><b>${sc[0]}</b>　${SC_ZH[S.sc]}<br>${en(SC_EN[S.sc])}`;
+  $("yr").value=S.year;$("yl").textContent=S.year;
+  const img=$("img"),u=imgUrl(S.sc,S.site,S.year);img.style.display="";$("ph").style.display="none";
+  img.alt=`Site ${S.site} ${VIEWS[S.view].en} ${S.year}`;
+  img.onerror=()=>{img.style.display="none";$("ph").style.display="flex";$("ph").innerHTML="该年份暂无渲染图<br>No rendering available for this year"};
+  img.src=u;
+  if(S.year<Y1)new Image().src=imgUrl(S.sc,S.site,S.year+1);
+  const cs=cohorts(S.sc,S.site,S.year);
+  $("s1").textContent=agb(S.sc,S.site,S.year).toFixed(2);$("s2").textContent=cs.length;$("s3").textContent=cs.length?Math.max(...cs.map(c=>c[0])):"–";
+  drawLine();drawAge();
+}
+
+document.querySelectorAll(".sitefoot").forEach(f=>{const c=CONTACT;
+  f.innerHTML=`<div><b>版权所有</b> © ${c.year} ${c.org}</div><div><b>通讯地址</b> ${c.addr}</div><div><b>平台维护</b> ${c.maint}</div><div><b>联系邮箱</b> <a href="mailto:${c.email}">${c.email}</a></div>`});
+
+if(innerWidth<700)$("hint").removeAttribute("open");
+
+
+loadT();
+loadCSV().then(()=>{ready=true;route()}).catch(()=>note(MSG_DATA));
+</script>
+</body>
+</html>
